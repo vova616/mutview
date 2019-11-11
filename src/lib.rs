@@ -39,7 +39,7 @@ impl<'a, V, const N: usize> RefCells<'a, V, {N}> {
             panic!("borrowing more than once is not allowed")
         }
         
-        if len >= self.keys.len() {
+        if len >= N {
             panic!("reached max borrows, you can increase the size of N if needed")
         }
         self.keys[len].set(MaybeUninit::new(key));
@@ -82,6 +82,18 @@ mod tests {
     fn strings_test() {
         let mut arr = ["", "a", "b"];
         let view = RefCells::<_, 1>::new(&mut arr);
+        let a = "testtesttest".to_string();
+        *view.get_mut(0).unwrap() = a.as_str();
+
+        let expected = ["testtesttest", "a", "b"];
+        assert_eq!(arr, expected, "\nExpected\n{:?}\nfound\n{:?}", expected, arr);
+    }
+
+    #[test]
+    #[should_panic]
+    fn strings_zero_test() {
+        let mut arr = ["", "a", "b"];
+        let view = RefCells::<_, 0>::new(&mut arr);
         let a = "testtesttest".to_string();
         *view.get_mut(0).unwrap() = a.as_str();
 
