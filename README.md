@@ -13,7 +13,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-refcells = {version="0.1.0", git = "https://github.com/vova616/refcells"}
+refcells = {version="0.1.1", git = "https://github.com/vova616/refcells"}
 ```
 
 example:
