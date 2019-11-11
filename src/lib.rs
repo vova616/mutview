@@ -10,7 +10,7 @@ pub struct RefCells<'a, V, const N: usize> {
 }
 
 impl<'a, V, const N: usize> RefCells<'a, V, {N}> {
-    fn new(slice: &'a mut [V]) -> Self {
+    pub fn new(slice: &'a mut [V]) -> Self {
         let keys: [Cell<MaybeUninit<usize>>; N] = unsafe {
             MaybeUninit::uninit().assume_init()
         };
@@ -21,11 +21,11 @@ impl<'a, V, const N: usize> RefCells<'a, V, {N}> {
         }
     }
 
-    fn get(&self, key: usize) -> Option<&V> {
+    pub fn get(&self, key: usize) -> Option<&V> {
         self.get_mut(key).map(|v| &*v)
     }
 
-    fn get_mut(&self, key: usize) -> Option<&mut V> {
+    pub fn get_mut(&self, key: usize) -> Option<&mut V> {
         let len = self.len.get();
         if self.keys[..len]
             .iter()
