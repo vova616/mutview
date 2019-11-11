@@ -1,6 +1,6 @@
-# mutview
+# refcells
 
-![](https://github.com/vova616/mutview/workflows/Rust/badge.svg)
+![](https://github.com/vova616/refcells/workflows/Rust/badge.svg)
     
 A library that allows you to get N mutable elements from slices without changing the underlying type, AKA runtime borrow check for slices
 
@@ -13,19 +13,19 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-mutview = {version="0.1.0", git = "https://github.com/vova616/mutview"}
+refcells = {version="0.1.0", git = "https://github.com/vova616/refcells"}
 ```
 
 example:
 
 ```rust
-use mutview::MutView;
+use refcells::RefCells;
 
 fn main() {
     let mut arr = [10,20,30,40,50];
     //we going to take 3 different elements from a slice
     //if you are doing something in a loop then this should be inside the loop and not outside
-    let view = MutView::<_, 3>::new(&mut arr);
+    let view = RefCells::<_, 3>::new(&mut arr);
     let a = view.get_mut(0).unwrap();
     let b = view.get_mut(1).unwrap();
     let c = view.get_mut(2).unwrap();

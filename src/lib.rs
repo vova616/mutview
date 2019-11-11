@@ -3,18 +3,18 @@
 use std::cell::{Cell, UnsafeCell};
 use core::mem::MaybeUninit;
 
-pub struct MutView<'a, V, const N: usize> {
+pub struct RefCells<'a, V, const N: usize> {
     pub len: Cell<usize>,
     keys: [Cell<MaybeUninit<usize>>; N],
     view: &'a [UnsafeCell<V>],
 }
 
-impl<'a, V, const N: usize> MutView<'a, V, {N}> {
+impl<'a, V, const N: usize> RefCells<'a, V, {N}> {
     fn new(slice: &'a mut [V]) -> Self {
         let keys: [Cell<MaybeUninit<usize>>; N] = unsafe {
             MaybeUninit::uninit().assume_init()
         };
-        MutView {
+        RefCells {
             view: unsafe { std::mem::transmute(slice) },
             keys: keys,
             len: Cell::new(0),
@@ -65,7 +65,7 @@ mod tests {
     #[test]
     fn numbers_test() {
         let mut arr = [10,20,30,40,50];
-        let view = MutView::<_, 3>::new(&mut arr);
+        let view = RefCells::<_, 3>::new(&mut arr);
         let a = view.get_mut(0).unwrap();
         let b = view.get_mut(1).unwrap();
         let c = view.get_mut(2).unwrap();
@@ -81,7 +81,7 @@ mod tests {
     #[test]
     fn strings_test() {
         let mut arr = ["", "a", "b"];
-        let view = MutView::<_, 1>::new(&mut arr);
+        let view = RefCells::<_, 1>::new(&mut arr);
         let a = "testtesttest".to_string();
         *view.get_mut(0).unwrap() = a.as_str();
 
@@ -93,7 +93,7 @@ mod tests {
     #[should_panic]
     fn numbers_test_panic() {
         let mut arr = [10,20,30,40,50];
-        let view = MutView::<_, 2>::new(&mut arr);
+        let view = RefCells::<_, 2>::new(&mut arr);
         let a = view.get_mut(0).unwrap();
         let b = view.get_mut(1).unwrap();
         let c = view.get_mut(2).unwrap();
@@ -103,7 +103,7 @@ mod tests {
     #[should_panic]
     fn numbers_test_panic2() {
         let mut arr = [10,20,30,40,50];
-        let view = MutView::<_, 2>::new(&mut arr);
+        let view = RefCells::<_, 2>::new(&mut arr);
         let a = view.get_mut(1).unwrap();
         let b = view.get_mut(1).unwrap();
     }
