@@ -1,12 +1,12 @@
 #![feature(const_generics,test)]
 
-use std::cell::{Cell, UnsafeCell};
+use std::cell::{Cell};
 use core::mem::MaybeUninit;
 
 pub struct RefCells<'a, V, const N: usize> {
     pub len: Cell<usize>,
     keys: [Cell<MaybeUninit<usize>>; N],
-    view: &'a [UnsafeCell<V>],
+    view: &'a [Cell<V>],
 }
 
 impl<'a, V, const N: usize> RefCells<'a, V, {N}> {
@@ -14,8 +14,10 @@ impl<'a, V, const N: usize> RefCells<'a, V, {N}> {
         let keys: [Cell<MaybeUninit<usize>>; N] = unsafe {
             MaybeUninit::uninit().assume_init()
         };
+        let view: &'a Cell<[V]> = Cell::from_mut(slice);
+        let view: &'a [Cell<V>] = view.as_slice_of_cells();
         RefCells {
-            view: unsafe { std::mem::transmute(slice) },
+            view: view,
             keys: keys,
             len: Cell::new(0),
         }
@@ -48,7 +50,7 @@ impl<'a, V, const N: usize> RefCells<'a, V, {N}> {
         let item = self.view.get(key)?;
         
         unsafe {
-            Some(&mut *item.get())
+            Some(&mut *item.as_ptr())
         }
     }
 }
@@ -59,8 +61,6 @@ extern crate test;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::hint::black_box;
-    use test::Bencher;
 
     #[test]
     fn numbers_test() {
@@ -106,9 +106,9 @@ mod tests {
     fn numbers_test_panic() {
         let mut arr = [10,20,30,40,50];
         let view = RefCells::<_, 2>::new(&mut arr);
-        let a = view.get_mut(0).unwrap();
-        let b = view.get_mut(1).unwrap();
-        let c = view.get_mut(2).unwrap();
+        let _a = view.get_mut(0).unwrap();
+        let _b = view.get_mut(1).unwrap();
+        let _c = view.get_mut(2).unwrap();
     }
 
     #[test]
@@ -116,7 +116,7 @@ mod tests {
     fn numbers_test_panic2() {
         let mut arr = [10,20,30,40,50];
         let view = RefCells::<_, 2>::new(&mut arr);
-        let a = view.get_mut(1).unwrap();
-        let b = view.get_mut(1).unwrap();
+        let _a = view.get_mut(1).unwrap();
+        let _b = view.get_mut(1).unwrap();
     }
 }
