@@ -4,7 +4,7 @@ use std::cell::{Cell};
 use core::mem::MaybeUninit;
 
 pub struct RefCells<'a, V, const N: usize> {
-    pub len: Cell<usize>,
+    len: Cell<usize>,
     keys: [Cell<MaybeUninit<usize>>; N],
     view: &'a [Cell<V>],
 }
@@ -21,6 +21,10 @@ impl<'a, V, const N: usize> RefCells<'a, V, {N}> {
             keys: keys,
             len: Cell::new(0),
         }
+    }
+    
+    pub fn borrows(&self) -> usize {
+        self.len.get()
     }
 
     pub fn get(&self, key: usize) -> Option<&V> {
