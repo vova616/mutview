@@ -4,21 +4,19 @@ use std::cell::{Cell};
 use core::mem::MaybeUninit;
 
 pub struct RefCells<'a, V, const N: usize> {
-    len: Cell<usize>,
-    keys: [Cell<MaybeUninit<usize>>; N],
+    pub len: Cell<usize>,
+    keys: [Cell<usize>; N],
     view: &'a [Cell<V>],
 }
 
 impl<'a, V, const N: usize> RefCells<'a, V, {N}> {
     pub fn new(slice: &'a mut [V]) -> Self {
-        let keys: [Cell<MaybeUninit<usize>>; N] = unsafe {
-            MaybeUninit::uninit().assume_init()
-        };
+        let keys = MaybeUninit::uninit();
         let view: &'a Cell<[V]> = Cell::from_mut(slice);
         let view: &'a [Cell<V>] = view.as_slice_of_cells();
         RefCells {
             view: view,
-            keys: keys,
+            keys: unsafe { keys.assume_init() },
             len: Cell::new(0),
         }
     }
@@ -35,11 +33,7 @@ impl<'a, V, const N: usize> RefCells<'a, V, {N}> {
         let len = self.len.get();
         if self.keys[..len]
             .iter()
-            .find(|&i| {
-                let i = unsafe {
-                    i.get().assume_init()
-                }; 
-                i == key })
+            .find(|&i| { i.get() == key })
             .is_some()
         {
             panic!("borrowing more than once is not allowed")
@@ -48,9 +42,9 @@ impl<'a, V, const N: usize> RefCells<'a, V, {N}> {
         if len >= N {
             panic!("reached max borrows, you can increase the size of N if needed")
         }
-        self.keys[len].set(MaybeUninit::new(key));
+        self.keys[len].set(key);
         self.len.set(len + 1);
-        
+
         let item = self.view.get(key)?;
         
         unsafe {
